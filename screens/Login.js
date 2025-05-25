@@ -2,9 +2,8 @@ import React from 'react';
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert} from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
-// import { signInWithEmailAndPassword } from 'firebase/auth';
-// import { getAuth } from 'firebase/auth';
-// import { app } from '../firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../firebase';
 
 const Login = ({navigation}) => {
   const buttonScale = useSharedValue(1);
@@ -38,26 +37,28 @@ const Login = ({navigation}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  // const handleLogin = async () => {
-  //   user.Email = email;
-  //   const auth = getAuth(app);
-  //   await signInWithEmailAndPassword(auth, email, password)
+  const handleLogin = async () => {
+    user.Email = email;
+    // console.log(email);
+    // console.log(password);
+    await signInWithEmailAndPassword(auth, email, password)
 
-  //   .then(() => {
-  //     navigation.navigate('home',user);
-  //   })
+    .then(() => {
+      // console.log("successful login");
+      navigation.navigate('home',user);
+    })
 
-  //   .catch(error => {
-  //     Alert.alert('Error', 'Incorrect email or password',
-  //       [
-  //         {
-  //           text: 'Try Again'
-  //         }
-  //       ]
-  //     );
-  //   });
-  // }
-
+    .catch(error => {
+      Alert.alert('Error', 'Incorrect email or password',
+        [
+          {
+            text: 'Try Again'
+          }
+        ]
+      );
+    });
+  }
+  
   return (
     <View style={styles.container}>
       <View style={styles.headerBar}>
@@ -86,7 +87,7 @@ const Login = ({navigation}) => {
         <TouchableOpacity 
           onPressIn={handlePressIn} 
           onPressOut={handlePressOut}
-          // onPress={handleLogin}
+          onPress={handleLogin}
           // onPress={() => console.log("Button Pressed")}
         >
           <Text style={styles.buttonText} title='Login'>LET'S GO</Text>

@@ -1,6 +1,8 @@
-import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert} from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../firebase';
 
 const Register = ({navigation}) => {
       const buttonScale = useSharedValue(1);
@@ -18,8 +20,57 @@ const Register = ({navigation}) => {
     
       const handlePressOut = () => {
         buttonScale.value = withTiming(1, { duration: 100 });
-        navigation.goBack();
+        // navigation.goBack();
       };
+
+      const [email, setEmail] = useState('');
+      const [password, setPassword] = useState('');
+      const [confirmPassword, setConfirmPassword] = useState('');
+      const [user, setUser] = useState({Email: ''});
+
+      const handleRegister = async () => {
+        if (!email || !password || !confirmPassword)
+        {
+          Alert.alert('Missing fields', 'Please fill all fields',
+            [
+              {
+                text: 'Try Again'
+              }
+            ]
+          );
+          return;
+        }
+
+        if (password !== confirmPassword)
+        {
+          Alert.alert('Password Mismatch', 'Passwords do not match',
+            [
+              {
+                text: 'Try Again'
+              }
+            ]
+          );
+          return;
+        }
+        
+        user.Email = email
+        await createUserWithEmailAndPassword(auth, email.trim(), password)
+
+        .then(() => {
+          // console.log("successful registeration");
+          navigation.goBack(user);
+        })
+
+        .catch(error => {
+          Alert.alert('Error', 'Could not Register Account',
+            [
+              {
+                text: 'Try Again'
+              }
+            ]
+          );
+        });
+      }
   return (
     <View style={styles.container}>
       <View style={styles.headerBar}>
@@ -29,20 +80,20 @@ const Register = ({navigation}) => {
       <Text style={styles.title}>REGISTER</Text>
       <Text style={styles.subtitle}>tag line related to fitness!</Text>
       
-      <Text style={styles.label}>NAME:</Text>
-      <TextInput style={styles.input} placeholder="Enter your name" placeholderTextColor="#ddd" />
-      
       <Text style={styles.label}>EMAIL:</Text>
-      <TextInput style={styles.input} placeholder="Enter your email" placeholderTextColor="#ddd" keyboardType="email-address" />
+      <TextInput style={styles.input} placeholder="Enter your email" placeholderTextColor="#ddd" onChangeText={text => setEmail(text)} value={email}/>
       
       <Text style={styles.label}>PASSWORD:</Text>
-      <TextInput style={styles.input} placeholder="Enter your password" placeholderTextColor="#ddd" secureTextEntry />
+      <TextInput style={styles.input} placeholder="Enter your password" placeholderTextColor="#ddd" keyboardType="email-address" onChangeText={text => setPassword(text)} value={password}/>
+      
+      <Text style={styles.label}>CONFIRM PASSWORD:</Text>
+      <TextInput style={styles.input} placeholder="Confirm password" placeholderTextColor="#ddd" secureTextEntry onChangeText={text => setConfirmPassword(text)} value={confirmPassword}/>
       
       <Animated.View style={[styles.button, animatedButtonStyle]}>
         <TouchableOpacity 
           onPressIn={handlePressIn} 
           onPressOut={handlePressOut} 
-          onPress={() => console.log("Button Pressed")}
+          onPress={handleRegister}
         >
           <Text style={styles.buttonText}>LET'S GO</Text>
         </TouchableOpacity>

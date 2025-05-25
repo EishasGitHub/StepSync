@@ -1,14 +1,13 @@
-// Import the functions you need from the SDKs you need
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { initializeApp } from "firebase/app";
-import { initializeAuth} from "firebase/auth";
-import { getReactNativePersistence } from 'firebase/auth';
-// import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { getAuth } from "firebase/auth";
+import { browserLocalPersistence } from "firebase/auth";
+import { getApp } from "firebase/app";
+import { getApps } from "firebase/app";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {getReactNativePersistence} from 'firebase/auth';
+import { initializeAuth } from "firebase/auth";
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+
 const firebaseConfig = {
   apiKey: "AIzaSyAgmcx349bMdRomHEInADTaAzMMER0JRVU",
   authDomain: "stepsync-34f05.firebaseapp.com",
@@ -19,12 +18,14 @@ const firebaseConfig = {
   measurementId: "G-5S22XN1C8X"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+
+// const auth = getAuth(app);
+// auth.setPersistence(browserLocalPersistence);
 
 const auth = initializeAuth(app, {
   persistence: getReactNativePersistence(AsyncStorage)
 });
-// const analytics = getAnalytics(app);
 
-export {auth, app}
+export {app, auth}
