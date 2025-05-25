@@ -43,6 +43,7 @@ import Navigator from './routes/homestack';
 import { auth } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useState, useEffect } from 'react';
+import QRScan from './screens/ScanQR';
 
 export default function App() {
   // const [user, setUser] = useState(null);

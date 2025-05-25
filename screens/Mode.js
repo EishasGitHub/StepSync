@@ -29,7 +29,7 @@ const PuzzleMode = ({navigation}) => {
 
   const handlePressOut = () => {
     buttonScale.value = withTiming(1, { duration: 100 });
-    navigation.push('gamezone');
+    navigation.push('QRscan');
   };
 
   return (
