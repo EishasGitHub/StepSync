@@ -12,7 +12,7 @@ import Settings from "../screens/Settings";
 import EditProfile from "../screens/EditProfile";
 import FAQs from "../screens/FAQs";
 import ReportBug from "../screens/Bug";
-import QRScan from "../screens/ScanQR";
+import UserDetails from "../screens/UserDetails";
 
 const HomeStack = createStackNavigator();
 
@@ -33,7 +33,7 @@ export default function Navigator()
                 <HomeStack.Screen name="editprofile" component={EditProfile} options={{cardStyle: {backgroundColor: 'transparent'}}}/>
                 <HomeStack.Screen name="help" component={FAQs} options={{cardStyle: {backgroundColor: 'transparent'}}}/>
                 <HomeStack.Screen name="bugreport" component={ReportBug} options={{cardStyle: {backgroundColor: 'transparent'}}}/>
-                <HomeStack.Screen name="QRscan" component={QRScan}/>
+                <HomeStack.Screen name="userdetails" component={UserDetails} options={{cardStyle: {backgroundColor: 'transparent'}}}/>
             </HomeStack.Navigator>
         </NavigationContainer>
     );

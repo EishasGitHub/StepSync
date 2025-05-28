@@ -2,8 +2,36 @@ import React from 'react';
 import { View, Text, TextInput, Image, StyleSheet , TouchableOpacity} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import { getAuth } from 'firebase/auth';
+import { getDatabase } from 'firebase/database';
+import { get, ref } from 'firebase/database';
+import { useEffect } from 'react';
+import { useState } from 'react';
 
 const GameZone = ({navigation}) => {
+
+  const [username, setUsername] = useState('');
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const auth = getAuth();
+      const user = auth.currentUser;
+
+      if (user) {
+        const uid = user.uid;
+        const db = getDatabase();
+        const snapshot = await get(ref(db, `users/${uid}`));
+
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          setUsername(data.username);
+        }
+      }
+    };
+
+    fetchUserData();
+    }, []);
+
     const buttonScale = useSharedValue(1);
   
     const animatedButtonStyle = useAnimatedStyle(() => {
@@ -46,7 +74,7 @@ const GameZone = ({navigation}) => {
       <View style={styles.userSection}>
         <Image source={{ uri: 'https://via.placeholder.com/50' }} style={styles.profileImage} />
         <View style={styles.userInfo}>
-          <Text style={styles.username}>Username</Text>
+          <Text style={styles.username}>{username}</Text>
           <Text style={styles.userStatus}>It's your 4th Day, Keep it up!</Text>
         </View>
       </View>

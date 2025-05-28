@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Button, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Progress from 'react-native-progress';
+import { getAuth } from 'firebase/auth';
+import { getDatabase } from 'firebase/database';
+import { get, ref } from 'firebase/database';
+import { useEffect } from 'react';
 
 const Home = ({navigation}) => {
   // Example step count and goal
@@ -25,6 +29,29 @@ const Home = ({navigation}) => {
     navigation.push('setting');
   }
 
+  const [username, setUsername] = useState('');
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const auth = getAuth();
+      const user = auth.currentUser;
+
+      if (user) {
+        const uid = user.uid;
+        const db = getDatabase();
+        const snapshot = await get(ref(db, `users/${uid}`));
+
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          setUsername(data.username);
+        }
+      }
+    };
+
+    fetchUserData();
+    }, []);
+
+
   return (
     <View style={styles.container}>
       {/* Header Section */}
@@ -34,7 +61,7 @@ const Home = ({navigation}) => {
       </View>
 
       {/* Welcome & Motivation */}
-      <Text style={styles.greeting}>Welcome back, User!</Text>
+      <Text style={styles.greeting}>Hey, {username}!</Text>
       <Text style={styles.motivation}>You're just {goal - steps} steps away from your goal today! Keep going!</Text>
 
       {/* Circular Progress Bar and Step Tracker */}

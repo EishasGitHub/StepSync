@@ -1,30 +1,304 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import { useEffect } from 'react';
+import { get, ref } from 'firebase/database';
+import { getAuth } from 'firebase/auth';
+import { getDatabase } from 'firebase/database';
+import { update } from 'firebase/database';
+import { Alert } from 'react-native';
+import { SelectList } from 'react-native-dropdown-select-list';
+import { AntDesign } from '@expo/vector-icons';
 
 const EditProfile = ({navigation}) => {
-      const buttonScale = useSharedValue(1);
-    
-      const animatedButtonStyle = useAnimatedStyle(() => {
-        return {
-          transform: [{ scale: buttonScale.value }],
-          backgroundColor: buttonScale.value === 1 ? '#2D1B3D' : '#00FF00', // Change color on press
-        };
-      });
-    
-      const handlePressIn = () => {
-        buttonScale.value = withTiming(0.95, { duration: 100 });
-      };
-    
-      const handlePressOut = () => {
-        buttonScale.value = withTiming(1, { duration: 100 });
-        navigation.goBack()
+  const genders = [
+      {key:'1', value:'Male'},
+      {key:'2', value:'Female'},
+      {key:'3', value:'Prefer not to say'}
+  ];
+
+  const handleAgeChange = (text) => {
+      const numericValue = text.replace(/[^0-9]/g, '');
+      setAge(numericValue);
+  };
+
+  const handleWeightChange = (text) => {
+      const numericValue = text.replace(/[^0-9.]/g, '');
+      setWeight(numericValue);
+  };
+
+  const handleHeightFTChange = (text) => {
+      const numericValue = text.replace(/[^0-9]/g, '');
+      setHeightFT(numericValue);
+  };
+
+  const handleHeightINChange = (text) => {
+      const numericValue = text.replace(/[^0-9]/g, '');
+      setHeightIN(numericValue);
+  };
+
+  const handleAgeBlur = () => {
+      const numeric = age.replace(/[^0-9]/g, '');
+      if (numeric) {
+          if (!validateAge(numeric)) {
+              Alert.alert("Invalid Age", "Age must be between 3 and 100 years");
+              setAge("");
+          } else {
+              setAge(numeric + ' years');
+          }
+      }
+  };
+
+  const handleWeightBlur = () => {
+      const numeric = weight.replace(/[^0-9.]/g, '');
+      if (numeric) {
+          if (!validateWeight(numeric)) {
+              Alert.alert("Invalid Weight", "Weight must be between 13 and 200 kg");
+              setWeight(""); 
+          } else {
+              setWeight(numeric + ' kg');
+          }
+      }
+  };
+
+  const handleHeightFTBlur = () => {
+      const ft = heightFT.replace(/[^0-9]/g, '');
+      const inches = heightIN.replace(/[^0-9]/g, '') || '0';
+      if (ft) {
+          if (!validateHeight(ft, inches)) {
+              Alert.alert("Invalid Height", "Feet must be between 3 and 8.");
+              setHeightFT("");
+          } else {
+              setHeightFT(ft + ' ft');
+          }
+      }
+  };
+
+  const handleHeightINBlur = () => {
+      const inches = heightIN.replace(/[^0-9]/g, '');
+      const ft = heightFT.replace(/[^0-9]/g, '') || '0';
+      if (inches) {
+          if (!validateHeight(ft, inches)) {
+              Alert.alert("Invalid Height", "Inches must be between 0 and 11.");
+              setHeightIN("");
+          } else {
+              setHeightIN(inches + ' in');
+          }
+      }
+  };
+
+  const handleAgeFocus = () => {
+      const numericValue = age.replace(/[^0-9]/g, '');
+      setAge(numericValue);
+  };
+
+  const handleWeightFocus = () => {
+      const numericValue = weight.replace(/[^0-9.]/g, '');
+      setWeight(numericValue);
+  };
+
+  const handleHeightFTFocus = () => {
+      const numericValue = heightFT.replace(/[^0-9]/g, '');
+      setHeightFT(numericValue);
+  };
+
+  const handleHeightINFocus = () => {
+      const numericValue = heightIN.replace(/[^0-9]/g, '');
+      setHeightIN(numericValue);
+  };
+
+  const bmi_calculator = (weight, heightFT, heightIN) => {
+    const height = ((heightFT * 12) + heightIN) * 0.0254
+    return parseFloat((weight / (height ** 2)).toFixed(2));
+  };
+
+  const validateAge = (value) => {
+      const numericValue = typeof value === 'string' ? value.replace(/[^0-9]/g, '') : value.toString();
+      const ageNum = parseInt(numericValue);
+      return ageNum >= 3 && ageNum <= 100;
+  };
+
+  const validateWeight = (value) => {
+      const numericValue = typeof value === 'string' ? value.replace(/[^0-9.]/g, '') : value.toString();
+      const weightNum = parseFloat(numericValue);
+      return weightNum >= 13 && weightNum <= 200;
+  };
+
+  const validateHeight = (ft, inches) => {
+      const ftValue = typeof ft === 'string' ? ft.replace(/[^0-9]/g, '') : ft.toString();
+      const inValue = typeof inches === 'string' ? inches.replace(/[^0-9]/g, '') : inches.toString();
+      
+      const ftNum = parseInt(ftValue);
+      const inNum = parseInt(inValue);
+      
+      return (ftNum >= 3 && ftNum <= 8) && (inNum >= 0 && inNum <= 11);
+  };
+
+  const buttonScale = useSharedValue(1);
+
+  const animatedButtonStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: buttonScale.value }],
+      backgroundColor: buttonScale.value === 1 ? '#2D1B3D' : '#00FF00', 
+    };
+  });
+
+  const handlePressIn = () => {
+    buttonScale.value = withTiming(0.95, { duration: 100 });
+  };
+
+  const handlePressOut = () => {
+    buttonScale.value = withTiming(1, { duration: 100 });
+    // navigation.goBack()
+
+    if (isEditing){
+      handleSubmit();
+      setIsEditing(false);
+    }
+
+    else {
+      (setIsEditing(true));
+    }
+  };
+
+  const back = () => {
+    navigation.goBack();
+  }
+
+  const profilePictures = {
+    'default.jpg': require('../assets/defaultProfile.jpg'),
+    'girlBlack.jpg': require('../assets/gamerGirlBlack.jpg'),
+    'boyWhite.png': require('../assets/gamerBoyWhite.png'),
+    'kid.png': require('../assets/gamerKid.png'),
+    'girlAsian.png': require('../assets/gamerGirlAsian.png')
+  };
+
+  const [profilePic, setProfilePic] = useState('');
+  const [username, setUsername] = useState('');
+  const [age, setAge] = useState('');
+  const [gender, setGender] = useState('');
+  const [weight, setWeight] = useState('');
+  const [heightFT, setHeightFT] = useState('');
+  const [heightIN, setHeightIN] = useState('');
+
+  const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const auth = getAuth();
+      const user = auth.currentUser;
+
+      if (user) {
+        const uid = user.uid;
+        const db = getDatabase();
+        const snapshot = await get(ref(db, `users/${uid}`));
+
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          setProfilePic(data.profilePicUrl);
+          setUsername(data.username);
+          setGender(data.gender);
+          setAge(data.age + ' years');
+          setWeight(data.weight_kg + ' kg');
+          setHeightFT(data.height_ft + ' ft');
+          setHeightIN(data.height_in + ' in');
+        }
+      }
+    };
+
+    fetchUserData();
+    }, []);
+
+  const handleSubmit = async () => {
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    if (user) {
+      const uid = user.uid;
+      const db = getDatabase();
+
+      const ageValue = age.replace(/[^0-9]/g, '');
+      const weightValue = weight.replace(/[^0-9.]/g, '');
+      const heightFTValue = heightFT.replace(/[^0-9]/g, '');
+      const heightINValue = heightIN.replace(/[^0-9]/g, '');
+
+      if (!username.trim()) {
+          Alert.alert("Missing Information", "Please enter a username");
+          return;
+      }
+
+      if (username.length < 3) {
+          Alert.alert("Invalid Username", "Username must be at least 3 characters long");
+          return;
+      }
+
+      if (!ageValue) {
+          Alert.alert("Missing Information", "Please enter your age");
+          return;
+      }
+
+      if (!gender) {
+          Alert.alert("Missing Information", "Please select your gender");
+          return;
+      }
+
+      if (!weightValue) {
+          Alert.alert("Missing Information", "Please enter your weight");
+          return;
+      }
+
+      if (!heightFTValue || !heightINValue) {
+          Alert.alert("Missing Information", "Please enter both feet and inches for height");
+          return;
+      }
+
+      if (!validateAge(ageValue)) {
+          Alert.alert("Invalid Age", "Age must be between 3 and 100 years");
+          return;
+      }
+
+      if (!validateWeight(weightValue)) {
+          Alert.alert("Invalid Weight", "Weight must be between 13 and 200 kg");
+          return;
+      }
+
+      if (!validateHeight(heightFTValue, heightINValue)) {
+          Alert.alert("Invalid Height", "Height must be between 3-8 feet and 0-11 inches");
+          return;
+      }
+
+      const ageNum = Number(ageValue);
+      const weightNum = Number(weightValue);
+      const heightFTNum = Number(heightFTValue);
+      const heightINNum = Number(heightINValue);
+
+      const bmi = bmi_calculator(weightNum,heightFTNum,heightINNum);
+
+      const updatedData = {
+        username,
+        age: ageNum,
+        gender,
+        bmi,
+        profilePicUrl: profilePic,
+        weight_kg: weightNum,
+        height_ft: heightFTNum,
+        height_in: heightINNum,
       };
 
-      const back = () => {
-        navigation.goBack();
+      try {
+        await update(ref(db, `users/${uid}`), updatedData);
+        Alert.alert('Successful', 'Saved Changes!', [{ text: 'Continue' }]);
+        setIsEditing(false);
+
       }
+      
+      catch (error) {
+        console.error("Failed to update profile:", error);
+
+      }
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -35,38 +309,86 @@ const EditProfile = ({navigation}) => {
       
       <View style={styles.profileSection}>
         <View style={styles.profileImageContainer}>
-          <Image source={{ uri: 'https://via.placeholder.com/100' }} style={styles.profileImage} />
+          <Image source={profilePictures[profilePic] } style={styles.profileImage} />
           <Ionicons name="create-outline" size={24} color="black" style={styles.editIcon} />
         </View>
       </View>
 
         <Text style={styles.label}>Username</Text>
-        <TextInput style={styles.input} value="Username_911" editable={false} />
+        <TextInput style={styles.input} value={username} onChangeText={setUsername} maxLength={20} editable={isEditing} />
 
       
       <View style={styles.row}>
         <View style={styles.column}>
           <Text style={styles.label}>Age:</Text>
-          <TextInput style={styles.smallInput} value="21" editable={false} />
+          <TextInput style={styles.smallInput} 
+            value={age} 
+            onChangeText={handleAgeChange} 
+            editable={isEditing}
+            onFocus={handleAgeFocus}
+            onBlur={handleAgeBlur}
+            keyboardType="numeric"
+            maxLength={8}
+          />
         </View>
         <View style={styles.columnGap}></View>
-        <View style={styles.column}>
+        <View style={[styles.column, { zIndex: 999}]}>
           <Text style={styles.label}>Gender:</Text>
-          <TextInput style={styles.smallInput} value="Female" editable={false} />
+        {isEditing ? (
+          <SelectList
+            setSelected={setGender}
+            data={genders}
+            save="value"
+            boxStyles={styles.smallInput}
+            inputStyles={{ color: '#fff' }}
+            dropdownStyles={{ backgroundColor: '#2D1B3D', borderColor: '#00ff00', position: 'absolute', top: 40 }}
+            dropdownItemStyles={{ paddingVertical: 10, borderBottomWidth: 1, borderTopWidth: 1, borderColor: '#ff00ff' }}
+            dropdownTextStyles={{ color: 'white' }}
+            searchPlaceholder="search"
+            arrowicon={<AntDesign name="caretdown" color={'#fff'} size={10} />}
+            closeicon={<AntDesign name="close" color={'#fff'} size={15} />}
+            searchicon={<AntDesign name="search1" color={'#fff'} size={15} style={{ right: 5 }} />}
+            defaultOption={{ key: gender, value: gender }}
+          />
+        ) : (
+          <Text style={[styles.smallInput, { color: '#fff', paddingVertical: 10 }]}>
+            {gender}
+          </Text>
+        )}
         </View>
       </View>
       
       <View style={styles.row}>
         <View style={styles.column}>
           <Text style={styles.label}>Weight:</Text>
-          <TextInput style={styles.smallInput} value="85 kg" editable={false} />
+          <TextInput style={styles.smallInput} value={weight} editable={isEditing}
+            onChangeText={handleWeightChange}
+            onFocus={handleWeightFocus}
+            onBlur={handleWeightBlur}
+            keyboardType="numeric"
+            maxLength={8}  
+          />
         </View>
+
         <View style={styles.columnGap}></View>
         <View style={styles.column}>
           <Text style={styles.label}>Height:</Text>
           <View style={styles.heightRow}>
-            <TextInput style={styles.heightInput} value="4 ft" editable={false} />
-            <TextInput style={styles.heightInput} value="9 in" editable={false} />
+            <TextInput style={styles.heightInput} value={heightFT} editable={isEditing} 
+              onChangeText={handleHeightFTChange}
+              onFocus={handleHeightFTFocus}
+              onBlur={handleHeightFTBlur}
+              keyboardType="numeric"
+              maxLength={5}
+            />
+            <TextInput style={styles.heightInput} value={heightIN}
+              editable={isEditing}
+              onChangeText={handleHeightINChange}
+              onFocus={handleHeightINFocus}
+              onBlur={handleHeightINBlur}
+              keyboardType="numeric"
+              maxLength={5}
+             />
           </View>
         </View>
       </View>
@@ -77,7 +399,9 @@ const EditProfile = ({navigation}) => {
           onPressOut={handlePressOut} 
           // onPress={() => console.log("Button Pressed")}
         >
-          <Text style={styles.buttonText}>LET'S GO</Text>
+          <Text style={styles.buttonText}>
+            {isEditing ? 'SAVE CHANGES' : 'EDIT'}
+          </Text>
         </TouchableOpacity>
       </Animated.View>
     </View>

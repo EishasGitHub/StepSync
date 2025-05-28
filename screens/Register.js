@@ -5,72 +5,59 @@ import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
 
 const Register = ({navigation}) => {
-      const buttonScale = useSharedValue(1);
+  const buttonScale = useSharedValue(1);
+
+  const animatedButtonStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: buttonScale.value }],
+      backgroundColor: buttonScale.value === 1 ? '#2D1B3D' : '#00FF00', // Change color on press
+    };
+  });
+
+  const handlePressIn = () => {
+    buttonScale.value = withTiming(0.95, { duration: 100 });
+  };
+
+  const handlePressOut = () => {
+    buttonScale.value = withTiming(1, { duration: 100 });
+    // navigation.goBack();
+  };
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [user, setUser] = useState({Email: ''});
+
+  const handleRegister = async () => {
     
-      const animatedButtonStyle = useAnimatedStyle(() => {
-        return {
-          transform: [{ scale: buttonScale.value }],
-          backgroundColor: buttonScale.value === 1 ? '#2D1B3D' : '#00FF00', // Change color on press
-        };
-      });
+    if (!email || !password || !confirmPassword) {
+      Alert.alert('Missing fields', 'Please fill all fields', [{ text: 'Try Again' }]);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert('Password Mismatch', 'Passwords do not match', [{ text: 'Try Again' }]);
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Weak Password', 'Password must be at least 6 characters');
+      return;
+    }
+
+    try {
+      user.Email = email;
+      const userCred = await createUserWithEmailAndPassword(auth, email.trim(), password);
+      const userID = userCred.user.uid;
+
+      navigation.push('userdetails', {user, userID, email: user.Email});
+    } 
     
-      const handlePressIn = () => {
-        buttonScale.value = withTiming(0.95, { duration: 100 });
-      };
-    
-      const handlePressOut = () => {
-        buttonScale.value = withTiming(1, { duration: 100 });
-        // navigation.goBack();
-      };
+    catch (error) {
+      Alert.alert('Error', 'Could not Register Account', [{ text: 'Try Again' }]);
+    }
+  };
 
-      const [email, setEmail] = useState('');
-      const [password, setPassword] = useState('');
-      const [confirmPassword, setConfirmPassword] = useState('');
-      const [user, setUser] = useState({Email: ''});
-
-      const handleRegister = async () => {
-        if (!email || !password || !confirmPassword)
-        {
-          Alert.alert('Missing fields', 'Please fill all fields',
-            [
-              {
-                text: 'Try Again'
-              }
-            ]
-          );
-          return;
-        }
-
-        if (password !== confirmPassword)
-        {
-          Alert.alert('Password Mismatch', 'Passwords do not match',
-            [
-              {
-                text: 'Try Again'
-              }
-            ]
-          );
-          return;
-        }
-        
-        user.Email = email
-        await createUserWithEmailAndPassword(auth, email.trim(), password)
-
-        .then(() => {
-          // console.log("successful registeration");
-          navigation.goBack(user);
-        })
-
-        .catch(error => {
-          Alert.alert('Error', 'Could not Register Account',
-            [
-              {
-                text: 'Try Again'
-              }
-            ]
-          );
-        });
-      }
   return (
     <View style={styles.container}>
       <View style={styles.headerBar}>
@@ -81,10 +68,10 @@ const Register = ({navigation}) => {
       <Text style={styles.subtitle}>tag line related to fitness!</Text>
       
       <Text style={styles.label}>EMAIL:</Text>
-      <TextInput style={styles.input} placeholder="Enter your email" placeholderTextColor="#ddd" onChangeText={text => setEmail(text)} value={email}/>
+      <TextInput style={styles.input} placeholder="Enter your email" placeholderTextColor="#ddd" keyboardType="email-address" onChangeText={text => setEmail(text)} value={email}/>
       
       <Text style={styles.label}>PASSWORD:</Text>
-      <TextInput style={styles.input} placeholder="Enter your password" placeholderTextColor="#ddd" keyboardType="email-address" onChangeText={text => setPassword(text)} value={password}/>
+      <TextInput style={styles.input} placeholder="Enter your password" placeholderTextColor="#ddd" secureTextEntry onChangeText={text => setPassword(text)} value={password}/>
       
       <Text style={styles.label}>CONFIRM PASSWORD:</Text>
       <TextInput style={styles.input} placeholder="Confirm password" placeholderTextColor="#ddd" secureTextEntry onChangeText={text => setConfirmPassword(text)} value={confirmPassword}/>

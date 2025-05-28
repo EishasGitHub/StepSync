@@ -1,6 +1,11 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { getAuth } from 'firebase/auth';
+import { getDatabase } from 'firebase/database';
+import { get, ref } from 'firebase/database';
+import { useEffect } from 'react';
+import { useState } from 'react';
 
 const leaderboardData = [
   { name: 'profile 1', steps: '12,300', rank: 1 },
@@ -24,6 +29,28 @@ const getRankIcon = (rank) => {
 };
 
 const Leaderboard = ({navigation}) => {
+
+  const [username, setUsername] = useState('');
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const auth = getAuth();
+      const user = auth.currentUser;
+
+      if (user) {
+        const uid = user.uid;
+        const db = getDatabase();
+        const snapshot = await get(ref(db, `users/${uid}`));
+
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          setUsername(data.username);
+        }
+      }
+    };
+
+    fetchUserData();
+    }, []);
 
   const homepage = () => {
     navigation.push('home');
@@ -49,7 +76,7 @@ const Leaderboard = ({navigation}) => {
         <View style={styles.userSection}>
           <Image source={{ uri: 'https://via.placeholder.com/50' }} style={styles.profileImage} />
           <View style={styles.userInfo}>
-            <Text style={styles.username}>@You</Text>
+            <Text style={styles.username}>{username}</Text>
             <Text style={styles.userStatus}>Day 4  |  Keep Going!</Text>
           </View>
         </View>

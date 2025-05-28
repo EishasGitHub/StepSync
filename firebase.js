@@ -6,11 +6,13 @@ import { getApps } from "firebase/app";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {getReactNativePersistence} from 'firebase/auth';
 import { initializeAuth } from "firebase/auth";
+import { getDatabase } from "firebase/database";
 
 
 const firebaseConfig = {
   apiKey: "AIzaSyAgmcx349bMdRomHEInADTaAzMMER0JRVU",
   authDomain: "stepsync-34f05.firebaseapp.com",
+  databaseURL: "https://stepsync-34f05-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "stepsync-34f05",
   storageBucket: "stepsync-34f05.firebasestorage.app",
   messagingSenderId: "829398616350",
@@ -28,4 +30,6 @@ const auth = initializeAuth(app, {
   persistence: getReactNativePersistence(AsyncStorage)
 });
 
-export {app, auth}
+const db = getDatabase(app);
+
+export {app, auth, db}
