@@ -1,6 +1,7 @@
 import React from 'react';
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
@@ -32,10 +33,14 @@ const Login = ({navigation}) => {
     navigation.push('register');
   }
   
-  const [passwordState, setPasswordState] = useState(true);
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [user, setUser] = useState({Email: ''});
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  const togglePasswordVisibility = () => {
+    setPasswordVisible(!passwordVisible);
+  };
 
   const handleLogin = async () => {
     user.Email = email;
@@ -69,16 +74,48 @@ const Login = ({navigation}) => {
       <Text style={styles.subtitle}>Join the fitness revolution!</Text>
       
       <Text style={styles.label}>Email:</Text>
-      <TextInput style={styles.input} placeholder="Enter your email address" placeholderTextColor="#ddd" onChangeText={text => setEmail(text)} value={email}/>
+      <TextInput 
+        style={styles.input} 
+        placeholder="Enter your email address" 
+        placeholderTextColor="#ddd" 
+        onChangeText={text => setEmail(text)} 
+        value={email}
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
       
       <Text style={styles.label}>PASSWORD:</Text>
-      <TextInput style={styles.input} placeholder="Enter your password" placeholderTextColor="#ddd" secureTextEntry onChangeText={text => setPassword(text)} value={password}/>
+      <View style={styles.passwordContainer}>
+        <TextInput 
+          style={styles.passwordInput} 
+          placeholder="Enter your password" 
+          placeholderTextColor="#ddd" 
+          secureTextEntry={!passwordVisible}
+          onChangeText={text => setPassword(text)} 
+          value={password}
+          autoCapitalize="none"
+        />
+        <TouchableOpacity 
+          style={styles.eyeButton} 
+          onPress={togglePasswordVisibility}
+        >
+          <Ionicons 
+            name={passwordVisible ? "eye" : "eye-off"} 
+            size={24} 
+            color="#00FF00" 
+          />
+        </TouchableOpacity>
+      </View>
     
       <View style={styles.fpcontainer}>  
-        <TouchableOpacity onPress={fp}><Text style={styles.fp}>Forgot Password?</Text></TouchableOpacity>
+        <TouchableOpacity onPress={fp}>
+          <Text style={styles.fp}>Forgot Password?</Text>
+        </TouchableOpacity>
 
         <Text style={styles.fp}>Don't have an account? 
-        <TouchableOpacity onPress={register}><Text style={styles.link}>Register</Text></TouchableOpacity>
+          <TouchableOpacity onPress={register}>
+            <Text style={styles.link}>Register</Text>
+          </TouchableOpacity>
         </Text>
         
       </View>  
@@ -168,40 +205,63 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#00FF00', // Neon green border for inputs
   },
-    button: {
-        paddingVertical: 15,
-        width: '50%',
-        borderWidth: 1,
-        borderColor: '#00FF00', // Neon green border for inputs
-        paddingHorizontal: 15,
-        backgroundColor: '#2D1B3D',
-        height: 'auto',
-        borderRadius: 10,
-        marginTop: '10%'
-    },
-    buttonText: {
-        color: '#FF00FF',
-        fontSize: 18,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        textShadowColor: '#FF00FF',
-        textShadowOffset: { width: 0, height: 0 },
-        textShadowRadius: 10,
-      },
-    fp: {
-        textAlign: 'center',
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 20,
-        color: 'grey'
-      },
-    link: {
-        textDecorationLine: 'underline',
-        color: '#00FF00'
-      },
-    fpcontainer: {
-        marginTop: 40,
-      }
+  passwordContainer: {
+    width: '100%',
+    position: 'relative',
+    marginBottom: 30,
+  },
+  passwordInput: {
+    width: '100%',
+    height: 50,
+    borderRadius: 10,
+    backgroundColor: '#2D1B3D',
+    paddingHorizontal: 15,
+    paddingRight: 50, // Make space for the eye icon
+    color: 'white',
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#00FF00',
+  },
+  eyeButton: {
+    position: 'absolute',
+    right: 15,
+    top: 13,
+    padding: 5,
+  },
+  button: {
+    paddingVertical: 15,
+    width: '50%',
+    borderWidth: 1,
+    borderColor: '#00FF00', // Neon green border for inputs
+    paddingHorizontal: 15,
+    backgroundColor: '#2D1B3D',
+    height: 'auto',
+    borderRadius: 10,
+    marginTop: '10%'
+  },
+  buttonText: {
+    color: '#FF00FF',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    textShadowColor: '#FF00FF',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
+  },
+  fp: {
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: 'grey'
+  },
+  link: {
+    textDecorationLine: 'underline',
+    color: '#00FF00'
+  },
+  fpcontainer: {
+    marginTop: 40,
+  }
 })
 
 export default Login;

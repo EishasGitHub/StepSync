@@ -160,7 +160,15 @@ const UserDetails = ({navigation}) => {
         return parseFloat((weight / (height ** 2)).toFixed(2));
     };
 
+    const getProfilePicture = () => {
+        if (gender === "Female") return "girlAsian.png";
+        if (gender === "Male") return "boyWhite.png";
+        return "default.jpg";
+    };
+
     const handleSubmit = async () => {
+        const pic = getProfilePicture();
+
         const ageValue = age.replace(/[^0-9]/g, '');
         const weightValue = weight.replace(/[^0-9.]/g, '');
         const heightFTValue = heightFT.replace(/[^0-9]/g, '');
@@ -224,11 +232,11 @@ const UserDetails = ({navigation}) => {
                 age: ageNum,
                 gender,
                 bmi,
-                profilePicUrl: 'default.jpg',
+                profilePicUrl: pic,
                 weight_kg: weightNum,
                 height_ft: heightFTNum,
                 height_in: heightINNum,
-                sessions: {}
+                sessions: {placeholder: "null"}
             });
         }
 

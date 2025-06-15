@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { useEffect } from 'react';
@@ -181,8 +181,21 @@ const EditProfile = ({navigation}) => {
   const [weight, setWeight] = useState('');
   const [heightFT, setHeightFT] = useState('');
   const [heightIN, setHeightIN] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
 
   const [isEditing, setIsEditing] = useState(false);
+
+  const handleSelectPicture = (pic) => {
+  setProfilePic(pic);
+  setModalVisible(false);
+  };
+
+  const getProfilePicture = (genderValue) => {
+      if (genderValue === "Female") return "girlAsian.png";
+      if (genderValue === "Male") return "boyWhite.png";
+      return "default.jpg";
+  };
+
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -211,6 +224,8 @@ const EditProfile = ({navigation}) => {
     }, []);
 
   const handleSubmit = async () => {
+
+    const profile = getProfilePicture(gender);
     const auth = getAuth();
     const user = auth.currentUser;
 
@@ -280,7 +295,7 @@ const EditProfile = ({navigation}) => {
         age: ageNum,
         gender,
         bmi,
-        profilePicUrl: profilePic,
+        profilePicUrl: profile,
         weight_kg: weightNum,
         height_ft: heightFTNum,
         height_in: heightINNum,
@@ -310,9 +325,9 @@ const EditProfile = ({navigation}) => {
       <View style={styles.profileSection}>
         <View style={styles.profileImageContainer}>
           <Image source={profilePictures[profilePic] } style={styles.profileImage} />
-          <Ionicons name="create-outline" size={24} color="black" style={styles.editIcon} />
         </View>
       </View>
+
 
         <Text style={styles.label}>Username</Text>
         <TextInput style={styles.input} value={username} onChangeText={setUsername} maxLength={20} editable={isEditing} />
@@ -336,7 +351,11 @@ const EditProfile = ({navigation}) => {
           <Text style={styles.label}>Gender:</Text>
         {isEditing ? (
           <SelectList
-            setSelected={setGender}
+            setSelected={(value) => { 
+              setGender(value); 
+              setProfilePic(getProfilePicture(value));
+            }}
+
             data={genders}
             save="value"
             boxStyles={styles.smallInput}
@@ -451,7 +470,7 @@ color: '#00FF00'
 },
 profileSection: {
 alignItems: 'center',
-marginBottom: 50,
+marginBottom: 20,
 
 },
 profileImageContainer: {
@@ -459,8 +478,8 @@ position: 'relative',
 
 },
 profileImage: {
-width: 100,
-height: 100,
+width: 130,
+height: 130,
 borderRadius: 50,
 backgroundColor: '#2D1B3D',
 borderWidth: 2,

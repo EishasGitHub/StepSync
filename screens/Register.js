@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
@@ -23,10 +24,26 @@ const Register = ({navigation}) => {
     // navigation.goBack();
   };
 
+  const handleGoBack = () => {
+  navigation.goBack();
+  };
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [user, setUser] = useState({Email: ''});
+  
+  // States for password visibility
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
+
+  const togglePasswordVisibility = () => {
+    setPasswordVisible(!passwordVisible);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setConfirmPasswordVisible(!confirmPasswordVisible);
+  };
 
   const handleRegister = async () => {
     
@@ -61,6 +78,9 @@ const Register = ({navigation}) => {
   return (
     <View style={styles.container}>
       <View style={styles.headerBar}>
+        <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+          <Ionicons name="arrow-back" size={24} color="#00FF00" />
+        </TouchableOpacity>
         <Text style={styles.headerText}>Step Sync</Text>
       </View>
       
@@ -68,13 +88,61 @@ const Register = ({navigation}) => {
       <Text style={styles.subtitle}>tag line related to fitness!</Text>
       
       <Text style={styles.label}>EMAIL:</Text>
-      <TextInput style={styles.input} placeholder="Enter your email" placeholderTextColor="#ddd" keyboardType="email-address" onChangeText={text => setEmail(text)} value={email}/>
+      <TextInput 
+        style={styles.input} 
+        placeholder="Enter your email" 
+        placeholderTextColor="#ddd" 
+        keyboardType="email-address" 
+        onChangeText={text => setEmail(text)} 
+        value={email}
+        autoCapitalize="none"
+      />
       
       <Text style={styles.label}>PASSWORD:</Text>
-      <TextInput style={styles.input} placeholder="Enter your password" placeholderTextColor="#ddd" secureTextEntry onChangeText={text => setPassword(text)} value={password}/>
+      <View style={styles.passwordContainer}>
+        <TextInput 
+          style={styles.passwordInput} 
+          placeholder="Enter your password" 
+          placeholderTextColor="#ddd" 
+          secureTextEntry={!passwordVisible}
+          onChangeText={text => setPassword(text)} 
+          value={password}
+          autoCapitalize="none"
+        />
+        <TouchableOpacity 
+          style={styles.eyeButton} 
+          onPress={togglePasswordVisibility}
+        >
+          <Ionicons 
+            name={passwordVisible ? "eye" : "eye-off"} 
+            size={24} 
+            color="#00FF00" 
+          />
+        </TouchableOpacity>
+      </View>
       
       <Text style={styles.label}>CONFIRM PASSWORD:</Text>
-      <TextInput style={styles.input} placeholder="Confirm password" placeholderTextColor="#ddd" secureTextEntry onChangeText={text => setConfirmPassword(text)} value={confirmPassword}/>
+      <View style={styles.passwordContainer}>
+        <TextInput 
+          style={styles.passwordInput} 
+          placeholder="Confirm password" 
+          placeholderTextColor="#ddd" 
+          secureTextEntry={!confirmPasswordVisible}
+          onChangeText={text => setConfirmPassword(text)} 
+          value={confirmPassword}
+          autoCapitalize="none"
+        />
+        <TouchableOpacity 
+          style={styles.eyeButton} 
+          onPress={toggleConfirmPasswordVisibility}
+        >
+          <Ionicons 
+            name={confirmPasswordVisible ? "eye" : "eye-off"} 
+            size={24} 
+            color="#00FF00" 
+          />
+        </TouchableOpacity>
+      </View>
       
       <Animated.View style={[styles.button, animatedButtonStyle]}>
         <TouchableOpacity 
@@ -159,26 +227,59 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#00FF00', // Neon green border for inputs
       },
-        button: {
-            paddingVertical: 15,
-            width: '50%',
-            borderWidth: 1,
-            borderColor: '#00FF00', // Neon green border for inputs
-            paddingHorizontal: 15,
-            backgroundColor: '#2D1B3D',
-            height: 'auto',
-            borderRadius: 10,
-            marginTop: '10%'
+      passwordContainer: {
+        width: '100%',
+        position: 'relative',
+        marginBottom: 30,
+      },
+      passwordInput: {
+        width: '100%',
+        height: 50,
+        borderRadius: 10,
+        backgroundColor: '#2D1B3D',
+        paddingHorizontal: 15,
+        paddingRight: 50, // Make space for the eye icon
+        color: 'white',
+        fontSize: 16,
+        borderWidth: 1,
+        borderColor: '#00FF00',
+      },
+      eyeButton: {
+        position: 'absolute',
+        right: 15,
+        top: 13,
+        padding: 5,
+      },
+      button: {
+          paddingVertical: 15,
+          width: '50%',
+          borderWidth: 1,
+          borderColor: '#00FF00', // Neon green border for inputs
+          paddingHorizontal: 15,
+          backgroundColor: '#2D1B3D',
+          height: 'auto',
+          borderRadius: 10,
+          marginTop: '10%'
+      },
+      buttonText: {
+          color: '#FF00FF',
+          fontSize: 18,
+          fontWeight: 'bold',
+          textAlign: 'center',
+          textShadowColor: '#FF00FF',
+          textShadowOffset: { width: 0, height: 0 },
+          textShadowRadius: 10,
         },
-        buttonText: {
-            color: '#FF00FF',
-            fontSize: 18,
-            fontWeight: 'bold',
-            textAlign: 'center',
-            textShadowColor: '#FF00FF',
-            textShadowOffset: { width: 0, height: 0 },
-            textShadowRadius: 10,
-          },
+      backButton: {
+        position: 'absolute',
+        left: 20,
+        top: '50%',
+        transform: [{ translateY: -12 }],
+        padding: 8,
+        borderRadius: 20,
+        backgroundColor: 'rgba(0, 255, 0, 0.1)',
+        zIndex: 1,
+    },
 });
 
 export default Register;
