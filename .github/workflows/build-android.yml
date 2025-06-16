@@ -37,6 +37,12 @@ jobs:
     
     - name: Prebuild
       run: npx expo prebuild --platform android
+
+    - name: Bundle JavaScript
+      run: |
+        npx expo export --platform android
+        mkdir -p android/app/src/main/assets
+        cp -r dist/* android/app/src/main/assets/
     
     - name: Build APK
       run: cd android && ./gradlew assembleDebug
